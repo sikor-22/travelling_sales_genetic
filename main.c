@@ -3,8 +3,41 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 
 
+void swap(int *a, int *b)
+{
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+//utility function to create random inversion of array [0, 1, 2, ... , size - 1]
+int* create_inversion(int size)
+{
+    srand(time(0));
+    int i, j;
+    int *inv = calloc(size, sizeof(int));
+    for(i = 0; i < size; i++)
+    {
+        inv[i] = i;
+    }
+    for(i = 0; i < size; i++){
+        for(j = 0; j < size; j++)
+        {
+            if(rand()%100 < 25) //every par rolls twice
+            {
+                swap(&inv[i], &inv[j]);
+            }
+        }
+    }
+    for(i = 0; i < size; i++)
+    {
+        printf("%d ", inv[i]);
+    }
+    return inv;
+}
 
 //utility function to calculate total distance given graph matrix "graph" of size "size" and inversion of nodes "order"
 int calc_distance(int* order,int** graph, int size)
@@ -72,6 +105,5 @@ int main(int argc, char **argv)
     int amnt_nodes;
     char* file_name = "test.txt";
     int **t = get_graph(file_name, &amnt_nodes);
-    int order[6] = {0, 1, 2, 3, 4, 5};
-    printf("%d", calc_distance(order, t, amnt_nodes));
+    int *inv = create_inversion(amnt_nodes);
 }
