@@ -5,6 +5,9 @@
 #include <math.h>
 #include <time.h>
 
+#define PRESERVE_CONST 0.9 //in final implementation as argument from command line
+
+
 
 struct agent
 {
@@ -117,6 +120,21 @@ struct agent* create_first_generation(int num, int size, int** graph)
 }
 
 
+void mutate(struct agent* specimen, int size, int** graph)
+{
+    int i;
+    for(i = 0; i < size; i++)
+    {
+        if(rand()%100 > (int)PRESERVE_CONST*100)
+        {
+            int k = rand()%size;
+            swap(&specimen->genes[i], &specimen->genes[k]);
+        }
+    }
+    specimen->distance = calc_distance(specimen->genes, graph, size);
+}
+
+
 
 
 int main(int argc, char **argv)
@@ -131,4 +149,6 @@ int main(int argc, char **argv)
     {
         printf("Distance of %dth agent: %d \n", i, first_gen[i].distance);
     }
+    mutate(&first_gen[0], amnt_nodes, t);
+    printf("Distance of 0th agent after mutation: %d \n", first_gen[0].distance);
 }
