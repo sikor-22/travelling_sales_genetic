@@ -6,6 +6,14 @@
 #include <time.h>
 
 
+struct agent
+{
+    int* genes;
+    int distance;
+};
+
+
+
 void swap(int *a, int *b)
 {
     int tmp = *a;
@@ -16,7 +24,7 @@ void swap(int *a, int *b)
 //utility function to create random inversion of array [0, 1, 2, ... , size - 1]
 int* create_inversion(int size)
 {
-    srand(time(0));
+    
     int i, j;
     int *inv = calloc(size, sizeof(int));
     for(i = 0; i < size; i++)
@@ -31,10 +39,6 @@ int* create_inversion(int size)
                 swap(&inv[i], &inv[j]);
             }
         }
-    }
-    for(i = 0; i < size; i++)
-    {
-        printf("%d ", inv[i]);
     }
     return inv;
 }
@@ -100,10 +104,31 @@ int** get_graph(char* entry_file, int* size)
     return return_graph;
 }
 
+struct agent* create_first_generation(int num, int size, int** graph)
+{
+    struct agent* return_arr = (struct agent*) calloc(num, sizeof(struct agent));
+    int i;
+    for(i = 0; i < num; i++)
+    {
+        return_arr[i].genes = create_inversion(size);
+        return_arr[i].distance = calc_distance(return_arr[i].genes, graph, size);
+    }
+    return return_arr;
+}
+
+
+
+
 int main(int argc, char **argv)
 {
+    srand(time(0));
     int amnt_nodes;
     char* file_name = "test.txt";
     int **t = get_graph(file_name, &amnt_nodes);
-    int *inv = create_inversion(amnt_nodes);
+    struct agent* first_gen = create_first_generation(5, amnt_nodes, t);
+    int i = 0;
+    for(i = 0; i <5; i++)
+    {
+        printf("Distance of %dth agent: %d \n", i, first_gen[i].distance);
+    }
 }
