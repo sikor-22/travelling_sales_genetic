@@ -5,8 +5,9 @@
 #include <math.h>
 #include <time.h>
 
-#define PRESERVE_CONST 0.9 //in final implementation as argument from command line
-
+#define PRESERVE_CONST 0.92 //in final implementation as argument from command line
+#define MUTATION_CONST 0.7
+#define MIX_CONST 0.4
 
 
 struct agent
@@ -135,7 +136,85 @@ void mutate(struct agent* specimen, int size, int** graph)
 }
 
 
+struct agent mix(struct agent first_spec, struct agent sec_spec, int size, int**graph)
+{
+    if(rand()%100 < MUTATION_CONST*100)
+    {
+        mutate(&first_spec, size, graph);
+    }
+    if(rand()%100 < MUTATION_CONST*100)
+    {
+        mutate(&sec_spec, size, graph);
+    }
+    int *t = calloc(size, sizeof(int));
+    int i;
+    int tmp = rand()%100;
+    for(i = 0; i < size; i++)
+    {
+        if(tmp < MIX_CONST*100)
+        {
+            t[i] = sec_spec.genes[i];
+        }else{
+            t[i] = first_spec.genes[i];
+        }
+    }
+    int distance_loc = calc_distance(t, graph, size);
+    struct agent ret_agent = {
+        .genes = t,
+        .distance = distance_loc
+    };
+    return ret_agent;
+}
 
+
+
+
+
+int* find_two_best(struct agent* generation, int num)
+{
+    int* ret_arr = (int*)calloc(2, sizeof(int));
+    int min1 = generation[0].distance;
+    int min_index1 = 0;
+    int min2 = generation[1].distance;
+    int min_index2 = 0;
+    if(min1 > min2)
+    {
+        swap(&min1, &min2);
+    }
+    int i = 0;
+    for(i = 2; i < num; i++)
+    {
+        if(generation[i].distance < min1)
+        {
+            min1 = generation[i].distance;
+            min_index1 = i;
+        }else if(generation[i].distance < min2)
+        {
+            min2 = generation[i].distance;
+            min_index2 = i;
+        }
+    }
+    ret_arr[0] = min_index1;
+    ret_arr[1] = min_index2;
+    return ret_arr;
+}
+
+
+struct agent* create_new_gen(struct agent* generation, int num, int size, int **graph)
+{
+   int* t = find_two_best(generation, num);
+   struct agent* new_gen = calloc(num, sizeof(struct agent));
+   int i;
+   for(i = 0; i < num; i++)
+   {
+       new_gen[i] = mix(generation[t[0]], generation[t[1]], size, graph);
+       if(rand()%100 < MUTATION_CONST *100)
+       {
+          mutate(&new_gen[i], size, graph);
+       }
+   }
+   return new_gen;
+}
 
 int main(int argc, char **argv)
 {
@@ -143,12 +222,14 @@ int main(int argc, char **argv)
     int amnt_nodes;
     char* file_name = "test.txt";
     int **t = get_graph(file_name, &amnt_nodes);
-    struct agent* first_gen = create_first_generation(5, amnt_nodes, t);
-    int i = 0;
-    for(i = 0; i <5; i++)
+    struct agent* gen = create_first_generation((int)pow(amnt_nodes, 2), amnt_nodes, t);
+    int i;
+    int* t3 = find_two_best(gen, (int)pow(amnt_nodes, 2));
+    for(i = 0; i < 36; i++)
     {
-        printf("Distance of %dth agent: %d \n", i, first_gen[i].distance);
+        struct agent* new_gen = create_new_gen(gen, (int)pow(amnt_nodes, 2), amnt_nodes, t);
+        gen = new_gen;
+        int *t2 = find_two_best(gen, (int)pow(amnt_nodes, 2));
+        printf("Generation: %d | Distance: %d \n", i, gen[t2[0]].distance);
     }
-    mutate(&first_gen[0], amnt_nodes, t);
-    printf("Distance of 0th agent after mutation: %d \n", first_gen[0].distance);
 }
